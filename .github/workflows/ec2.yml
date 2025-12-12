@@ -1,1 +1,22 @@
-name: EC2 Deployment
+name: EC2 Deploy
+
+on:
+  workflow_run:
+    workflows: ["Test"]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  deploy-ec2:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH into EC2 instance and run deploy script
+        uses: appleboy/ssh-action@v1.2.4
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            bash /home/ec2-user/dice/resources/deploy_ec2.sh
